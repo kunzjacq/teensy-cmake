@@ -48,9 +48,6 @@ macro(add_teensy_executable TARGET_NAME SOURCES)
     else()
         message(FATAL_ERROR "Invalid USB mode: ${TEENSY_USB_MODE}")
     endif()
-    set(TARGET_FLAGS "-D${USB_MODE_DEF} -DF_CPU=${TEENSY_FREQUENCY}000000 ${TEENSY_FLAGS}")
-    set(TARGET_C_FLAGS "${TARGET_FLAGS} ${TEENSY_C_FLAGS}")
-    set(TARGET_CXX_FLAGS "${TARGET_FLAGS} ${TEENSY_CXX_FLAGS}")
 
     # Build the Teensy 'core' library.
     # Per-target because of preprocessor definitions.
@@ -58,10 +55,7 @@ macro(add_teensy_executable TARGET_NAME SOURCES)
         ${TEENSY_C_CORE_FILES}
         ${TEENSY_CXX_CORE_FILES}
     )
-    set_source_files_properties(${TEENSY_C_CORE_FILES}
-        PROPERTIES COMPILE_FLAGS ${TARGET_C_FLAGS})
-    set_source_files_properties(${TEENSY_CXX_CORE_FILES}
-        PROPERTIES COMPILE_FLAGS ${TARGET_CXX_FLAGS})
+    target_compile_definitions(${TARGET_NAME}_TeensyCore PRIVATE ${USB_MODE_DEF} F_CPU=${TEENSY_FREQUENCY}000000)
 
     set(FINAL_SOURCES ${TEENSY_LIB_SOURCES})
     foreach(SOURCE ${SOURCES})
@@ -95,8 +89,7 @@ macro(add_teensy_executable TARGET_NAME SOURCES)
     
     # Build the ELF executable.
     add_executable(${TARGET_NAME} ${FINAL_SOURCES})
-    set_source_files_properties(${FINAL_SOURCES}
-        PROPERTIES COMPILE_FLAGS ${TARGET_CXX_FLAGS})
+    target_compile_definitions(${TARGET_NAME} PRIVATE ${USB_MODE_DEF} F_CPU=${TEENSY_FREQUENCY}000000)
     target_link_libraries(${TARGET_NAME} ${TARGET_NAME}_TeensyCore)
     set_target_properties(${TARGET_NAME} PROPERTIES
         OUTPUT_NAME ${TARGET_NAME}

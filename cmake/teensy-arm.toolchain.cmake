@@ -25,14 +25,16 @@
 # user-defined settings
 
 set(ARDUINO_ROOT "/usr/share/arduino/")
-#set(TOOLCHAIN_ROOT "${ARDUINO_ROOT}/hardware/tools/arm")
+#to use the cross-compiler provided with Arduino:
+set(TOOLCHAIN_ROOT "${ARDUINO_ROOT}/hardware/tools/arm")
 #note: to make a non-arduino compiler work: copy libarm_*_math.a from ${ARDUINO_ROOT}//hardware/tools/arm/arm-none-eabi/lib to ${TOOLCHAIN_ROOT}/arm-none-eabi/lib
-set(TOOLCHAIN_ROOT "/usr")
+#set(TOOLCHAIN_ROOT "/usr")
 set(TEENSY_CORES_ROOT "${ARDUINO_ROOT}/hardware/teensy/avr/cores" CACHE PATH "Path to the Teensy 'cores' repository")
 set(ARDUINO_LIB_ROOT "${ARDUINO_ROOT}/hardware/teensy/avr/libraries" CACHE PATH "Path to the Arduino library directory")
 set(ARDUINO_VERSION "106" CACHE STRING "Version of the Arduino SDK")
 set(TEENSYDUINO_VERSION "120" CACHE STRING "Version of the Teensyduino SDK")
 set(TEENSY_BOARD "3.6")
+set(TEENSY_USB_MODE "SERIAL" CACHE STRING "What kind of USB device the Teensy should emulate")
 
 #-------------------------------------------------------------------------------------------------------------------------
 
@@ -58,7 +60,6 @@ else()
   message(FATAL_ERROR "Unknown board model: ${TEENSY_BOARD}")
 endif()
 
-set(TEENSY_USB_MODE "SERIAL" CACHE STRING "What kind of USB device the Teensy should emulate")
 set_property(CACHE TEENSY_USB_MODE PROPERTY STRINGS SERIAL HID SERIAL_HID MIDI RAWHID FLIGHTSIM)
 
 if(WIN32)
@@ -109,9 +110,10 @@ set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER> <CMAKE_CXX_LINK_FLAGS> <LINK
 #if using a windows compiler under a unix shell, paths written in template files must be converted to native windows paths
 set(CONVERT_PATHS_TO_WIN FALSE)
 if(UNIX)
-  if((NOT DEFINED ${CYGWIN}) AND (NOT DEFINED ${MINGW}))
-    #note: CYGWIN and MINGW are variables, but UNIX seems to be a macro
-    set(CONVERT_PATHS_TO_WIN TRUE)
+  if(("$ENV{OSTYPE}" STREQUAL "msys") OR ("$ENV{OSTYPE}" STREQUAL "cygwin"))
+    if((NOT DEFINED ${CYGWIN}) AND (NOT DEFINED ${MINGW}))
+      set(CONVERT_PATHS_TO_WIN TRUE)
+    endif()
   endif()
 endif()
 
