@@ -110,8 +110,9 @@ set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER> <CMAKE_CXX_LINK_FLAGS> <LINK
 #if using a windows compiler under a unix shell, paths written in template files must be converted to native windows paths
 set(CONVERT_PATHS_TO_WIN FALSE)
 if(UNIX)
-  if(("$ENV{OSTYPE}" STREQUAL "msys") OR ("$ENV{OSTYPE}" STREQUAL "cygwin"))
-    if((NOT DEFINED ${CYGWIN}) AND (NOT DEFINED ${MINGW}))
+  string(REGEX MATCH "^Windows.*$" OS_MATCHES_WINDOWS $ENV{OS})
+  if(OS_MATCHES_WINDOWS) #unix shell, windows OS
+    if((NOT DEFINED ${CYGWIN}) AND (NOT DEFINED ${MINGW})) #compiler is not unix-path aware
       set(CONVERT_PATHS_TO_WIN TRUE)
     endif()
   endif()

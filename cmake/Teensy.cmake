@@ -56,6 +56,14 @@ macro(add_teensy_executable TARGET_NAME SOURCES)
         ${TEENSY_CXX_CORE_FILES}
     )
     target_compile_definitions(${TARGET_NAME}_TeensyCore PRIVATE ${USB_MODE_DEF} F_CPU=${TEENSY_FREQUENCY}000000)
+    if(TEENSY_C_FLAGS)
+      set_source_files_properties(${TEENSY_C_CORE_FILES}
+          PROPERTIES COMPILE_FLAGS ${TEENSY_C_FLAGS})
+    endif()
+    if(TEENSY_CXX_FLAGS)
+    set_source_files_properties(${TEENSY_CXX_CORE_FILES}
+        PROPERTIES COMPILE_FLAGS ${TEENSY_CXX_FLAGS})
+    endif()
 
     set(FINAL_SOURCES ${TEENSY_LIB_SOURCES})
     foreach(SOURCE ${SOURCES})
@@ -90,6 +98,10 @@ macro(add_teensy_executable TARGET_NAME SOURCES)
     # Build the ELF executable.
     add_executable(${TARGET_NAME} ${FINAL_SOURCES})
     target_compile_definitions(${TARGET_NAME} PRIVATE ${USB_MODE_DEF} F_CPU=${TEENSY_FREQUENCY}000000)
+    if(TEENSY_CXX_FLAGS)
+    set_source_files_properties(${FINAL_SOURCES}
+        PROPERTIES COMPILE_FLAGS ${TEENSY_CXX_FLAGS})
+    endif()
     target_link_libraries(${TARGET_NAME} ${TARGET_NAME}_TeensyCore)
     set_target_properties(${TARGET_NAME} PROPERTIES
         OUTPUT_NAME ${TARGET_NAME}
