@@ -30,7 +30,7 @@ endmacro()
 file(GLOB TEENSY_C_CORE_FILES  "${TEENSY_ROOT}/*.c")
 file(GLOB TEENSY_CXX_CORE_FILES  "${TEENSY_ROOT}/*.cpp")
 
-macro(add_teensy_executable TARGET_NAME SOURCES)
+macro(add_teensy_executable TARGET_NAME) #file names are processed as supplementary arguments with ${ARGN}
     # Determine the target flags for this executable.
     set(USB_MODE_DEF)
     if(${TEENSY_USB_MODE} STREQUAL SERIAL)
@@ -48,9 +48,6 @@ macro(add_teensy_executable TARGET_NAME SOURCES)
     else()
         message(FATAL_ERROR "Invalid USB mode: ${TEENSY_USB_MODE}")
     endif()
-    set(TARGET_FLAGS "-D${USB_MODE_DEF} -DF_CPU=${TEENSY_FREQUENCY}000000 ${TEENSY_FLAGS}")
-    set(TARGET_C_FLAGS "${TARGET_FLAGS} ${TEENSY_C_FLAGS}")
-    set(TARGET_CXX_FLAGS "${TARGET_FLAGS} ${TEENSY_CXX_FLAGS}")
 
     # Build the Teensy 'core' library.
     # Per-target because of preprocessor definitions.
@@ -58,13 +55,18 @@ macro(add_teensy_executable TARGET_NAME SOURCES)
         ${TEENSY_C_CORE_FILES}
         ${TEENSY_CXX_CORE_FILES}
     )
-    set_source_files_properties(${TEENSY_C_CORE_FILES}
-        PROPERTIES COMPILE_FLAGS ${TARGET_C_FLAGS})
+    target_compile_definitions(${TARGET_NAME}_TeensyCore PRIVATE ${USB_MODE_DEF} F_CPU=${TEENSY_FREQUENCY}000000)
+    if(TEENSY_C_FLAGS)
+      set_source_files_properties(${TEENSY_C_CORE_FILES}
+          PROPERTIES COMPILE_FLAGS ${TEENSY_C_FLAGS})
+    endif()
+    if(TEENSY_CXX_FLAGS)
     set_source_files_properties(${TEENSY_CXX_CORE_FILES}
-        PROPERTIES COMPILE_FLAGS ${TARGET_CXX_FLAGS})
+        PROPERTIES COMPILE_FLAGS ${TEENSY_CXX_FLAGS})
+    endif()
 
     set(FINAL_SOURCES ${TEENSY_LIB_SOURCES})
-    foreach(SOURCE ${SOURCES})
+    foreach(SOURCE ${ARGN})
         get_filename_component(SOURCE_EXT ${SOURCE} EXT)
         get_filename_component(SOURCE_NAME ${SOURCE} NAME_WE)
         if(CONVERT_PATHS_TO_WIN)
@@ -86,7 +88,7 @@ macro(add_teensy_executable TARGET_NAME SOURCES)
         else()
             set(FINAL_SOURCES ${FINAL_SOURCES} ${SOURCE})
         endif()
-    endforeach(SOURCE ${SOURCES})
+    endforeach()
     
     # Add the Arduino library directory to the include path if found.
     if(EXISTS ${ARDUINO_LIB_ROOT})
@@ -95,8 +97,11 @@ macro(add_teensy_executable TARGET_NAME SOURCES)
     
     # Build the ELF executable.
     add_executable(${TARGET_NAME} ${FINAL_SOURCES})
+    target_compile_definitions(${TARGET_NAME} PRIVATE ${USB_MODE_DEF} F_CPU=${TEENSY_FREQUENCY}000000)
+    if(TEENSY_CXX_FLAGS)
     set_source_files_properties(${FINAL_SOURCES}
-        PROPERTIES COMPILE_FLAGS ${TARGET_CXX_FLAGS})
+        PROPERTIES COMPILE_FLAGS ${TEENSY_CXX_FLAGS})
+    endif()
     target_link_libraries(${TARGET_NAME} ${TARGET_NAME}_TeensyCore)
     set_target_properties(${TARGET_NAME} PROPERTIES
         OUTPUT_NAME ${TARGET_NAME}
@@ -139,13 +144,15 @@ macro(import_arduino_library LIB_NAME)
     include_directories("${LIB_DIR}")
     
     # Mark source files to be built along with the sketch code.
-    file(GLOB SOURCES_CPP ABSOLUTE "${LIB_DIR}" "${LIB_DIR}/*.cpp")
+    file(GLOB SOURCES_CPP "${LIB_DIR}/*.cpp")
     foreach(SOURCE_CPP ${SOURCES_CPP})
         set(TEENSY_LIB_SOURCES ${TEENSY_LIB_SOURCES} ${SOURCE_CPP})
     endforeach(SOURCE_CPP ${SOURCES_CPP})
-    file(GLOB SOURCES_C ABSOLUTE "${LIB_DIR}" "${LIB_DIR}/*.c")
+    file(GLOB SOURCES_C "${LIB_DIR}/*.c")
     foreach(SOURCE_C ${SOURCES_C})
+      if(SOURCE_C)
         set(TEENSY_LIB_SOURCES ${TEENSY_LIB_SOURCES} ${SOURCE_C})
+      endif()
     endforeach(SOURCE_C ${SOURCES_C})
 endmacro(import_arduino_library)
 

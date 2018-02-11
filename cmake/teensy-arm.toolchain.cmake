@@ -24,15 +24,17 @@
 #-------------------------------------------------------------------------------------------------------------------------
 # user-defined settings
 
-set(ARDUINO_ROOT "/usr/share/arduino/")
+set(ARDUINO_ROOT "C:/0install_programs/arduino-1.8.5/")
+#to use the cross-compiler provided with Arduino:
 #set(TOOLCHAIN_ROOT "${ARDUINO_ROOT}/hardware/tools/arm")
 #note: to make a non-arduino compiler work: copy libarm_*_math.a from ${ARDUINO_ROOT}//hardware/tools/arm/arm-none-eabi/lib to ${TOOLCHAIN_ROOT}/arm-none-eabi/lib
-set(TOOLCHAIN_ROOT "/usr")
+set(TOOLCHAIN_ROOT "C:/gcc-arm-none-eabi")
 set(TEENSY_CORES_ROOT "${ARDUINO_ROOT}/hardware/teensy/avr/cores" CACHE PATH "Path to the Teensy 'cores' repository")
 set(ARDUINO_LIB_ROOT "${ARDUINO_ROOT}/hardware/teensy/avr/libraries" CACHE PATH "Path to the Arduino library directory")
-set(ARDUINO_VERSION "106" CACHE STRING "Version of the Arduino SDK")
-set(TEENSYDUINO_VERSION "120" CACHE STRING "Version of the Teensyduino SDK")
+set(ARDUINO_VERSION "185" CACHE STRING "Version of the Arduino SDK")
+set(TEENSYDUINO_VERSION "141" CACHE STRING "Version of the Teensyduino SDK")
 set(TEENSY_BOARD "3.6")
+set(TEENSY_USB_MODE "SERIAL" CACHE STRING "What kind of USB device the Teensy should emulate")
 
 #-------------------------------------------------------------------------------------------------------------------------
 
@@ -58,7 +60,6 @@ else()
   message(FATAL_ERROR "Unknown board model: ${TEENSY_BOARD}")
 endif()
 
-set(TEENSY_USB_MODE "SERIAL_HID" CACHE STRING "What kind of USB device the Teensy should emulate")
 set_property(CACHE TEENSY_USB_MODE PROPERTY STRINGS SERIAL HID SERIAL_HID MIDI RAWHID FLIGHTSIM)
 
 if(WIN32)
@@ -108,9 +109,13 @@ set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER> <CMAKE_CXX_LINK_FLAGS> <LINK
 
 #if using a windows compiler under a unix shell, paths written in template files must be converted to native windows paths
 set(CONVERT_PATHS_TO_WIN FALSE)
-if(${UNIX} AND (NOT DEFINED ${CYGWIN}) AND (NOT DEFINED ${MINGW}))
-  #note: CYGWIN and MINGW are variables, but UNIX seems to be a macro
-  set(CONVERT_PATHS_TO_WIN TRUE)
+if(UNIX)
+  string(REGEX MATCH "^Windows.*$" OS_MATCHES_WINDOWS $ENV{OS})
+  if(OS_MATCHES_WINDOWS) #unix shell, windows OS
+    if((NOT DEFINED ${CYGWIN}) AND (NOT DEFINED ${MINGW})) #compiler is not unix-path aware
+      set(CONVERT_PATHS_TO_WIN TRUE)
+    endif()
+  endif()
 endif()
 
 add_definitions("-DARDUINO=${ARDUINO_VERSION}")
