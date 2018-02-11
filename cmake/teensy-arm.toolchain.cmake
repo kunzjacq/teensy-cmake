@@ -24,11 +24,11 @@
 #-------------------------------------------------------------------------------------------------------------------------
 # user-defined settings
 
-set(ARDUINO_ROOT "C:/0install_programs/arduino-1.8.5/")
+set(ARDUINO_ROOT "/usr/share/arduino/")
 #to use the cross-compiler provided with Arduino:
-#set(TOOLCHAIN_ROOT "${ARDUINO_ROOT}/hardware/tools/arm")
+set(TOOLCHAIN_ROOT "${ARDUINO_ROOT}/hardware/tools/arm")
 #note: to make a non-arduino compiler work: copy libarm_*_math.a from ${ARDUINO_ROOT}//hardware/tools/arm/arm-none-eabi/lib to ${TOOLCHAIN_ROOT}/arm-none-eabi/lib
-set(TOOLCHAIN_ROOT "C:/gcc-arm-none-eabi")
+#set(TOOLCHAIN_ROOT "/usr")
 set(TEENSY_CORES_ROOT "${ARDUINO_ROOT}/hardware/teensy/avr/cores" CACHE PATH "Path to the Teensy 'cores' repository")
 set(ARDUINO_LIB_ROOT "${ARDUINO_ROOT}/hardware/teensy/avr/libraries" CACHE PATH "Path to the Arduino library directory")
 set(ARDUINO_VERSION "185" CACHE STRING "Version of the Arduino SDK")
